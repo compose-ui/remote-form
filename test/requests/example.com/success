@@ -1,7 +1,0 @@
-GET /success
-host: example.com
-
-200 HTTP/1.1
-content-type: application/json
-
-{}

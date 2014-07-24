@@ -24,13 +24,13 @@ More details about each fired "event" below.
 
 ```javascript
 RemoteForm.extend({
-  beforeSend: function(event, req){
+  beforeSend: function(req){
     console.log('submitting the form...')
   },
-  success: function(event, body, status, req){
+  success: function(body, status, xhr){
     console.log('success!', body)
   },
-  error: function(event, req, error){
+  error: function(xhr, status, error){
     console.log('error :(', error)
   }
 })
@@ -46,10 +46,12 @@ Fired before sending the AJAX request. There's no stopping it, but it's useful t
 
 It's fired with the superagent request (`req`) object.
 
-### `ajax:success(body, status, req)`
+### `ajax:success(body, status, xhr)`
 
-Upon success, this is fired with the returned `body`, response `status` and the ajax request `req` object.
+Upon success, this is fired with the returned `body`, response `status` and the ajax request `xhr` object.
 
-### `ajax:error(req, error)`
+### `ajax:error(xhr, status, error)`
 
-When an error occurs, this event is fired with the original ajax request `req` and the `error` that the ajax library suffered.
+When an error occurs, this event is fired with the original ajax request `xhr` object and the `error` that the ajax library suffered.
+
+It'll be fire in the event of a request not getting through (due to CORS, server down, etc.), a server error (5xx) or a client error (4xx).

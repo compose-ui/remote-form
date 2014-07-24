@@ -33,25 +33,27 @@ module.exports = Wagon.extend({
     else
       req.set('Accept', '*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript')
 
-    bean.fire(this.el, 'ajax:beforeSend', req)
+    bean.fire(this.el, 'ajax:beforeSend', [req])
 
     req.end(this._handleResponse.bind(this))
 
     return req
   },
 
-  _handleResponse: function(error, resp){
+  _handleResponse: function(error, response){
     if (error)
-      bean.fire(this.el, 'ajax:error', this.currentRequest, error)
+      bean.fire(this.el, 'ajax:error', [this.currentRequest.xhr, this.currentRequest.xhr.status, error])
+    else if (response.error)
+      bean.fire(this.el, 'ajax:error', [this.currentRequest.xhr, response.status, response.error])
     else
-      bean.fire(this.el, 'ajax:success', resp.body, resp.status, this.currentRequest)
+      bean.fire(this.el, 'ajax:success', [response.body, response.status, this.currentRequest.xhr])
     // This is fired every time.
-    bean.fire(this.el, 'ajax:complete', this.currentRequest, resp ? resp.status : 0)
+    bean.fire(this.el, 'ajax:complete', [this.currentRequest.xhr, response ? response.status : 0])
     delete this.currentRequest
   },
 
-  beforeSend: function(event, req){},
-  success: function(event, body, status, req){},
-  error: function(event, req, error){}
+  beforeSend: function(req){},
+  success: function(body, status, xhr){},
+  error: function(xhr, status, error){}
 
 })

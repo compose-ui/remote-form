@@ -3,73 +3,115 @@ var assert = helpers.assert
 var makeHtml = helpers.makeHtml
 var RemoteForm = require('../index')
 var bean = require('bean')
+var request = require('superagent')
+var sinon = require('sinon')
 
-var proxy_url = 'http://localhost:8800'
+var successCount, errorCount, beforeSendCount, completeCount = 0
+var successArgs, errorArgs, beforeSendArgs, completeArgs = []
 
-var successes, errors, beforeSends, completes = 0
-
-function addBeforeSend(){beforeSends++}
-function addSuccess(){successes++}
-function addError(){errors++}
-function addComplete(){completes++}
+function beforeSendCb(){beforeSendCount++; beforeSendArgs = arguments}
+function successCb(){successCount++; successArgs = arguments}
+function errorCb(){errorCount++; errorArgs = arguments}
+function completeCb(){completeCount++; completeArgs = arguments}
 
 describe('RemoteForm', function(){
   var formEl, remoteForm;
   beforeEach(function(){
-    successes = errors = beforeSends = completes = 0
+    successCount = errorCount = beforeSendCount = completeCount = 0
+    successArgs, errorArgs, beforeSendArgs, completeArgs = []
     formEl = makeHtml(function(){/*
       <form data-remote="true"></form>
     */})
-    bean.on(formEl, 'ajax:beforeSend', addBeforeSend)
-    bean.on(formEl, 'ajax:success', addSuccess)
-    bean.on(formEl, 'ajax:error', addError)
-    bean.on(formEl, 'ajax:complete', addComplete)
+    bean.on(formEl, 'ajax:beforeSend', beforeSendCb)
+    bean.on(formEl, 'ajax:success', successCb)
+    bean.on(formEl, 'ajax:error', errorCb)
+    bean.on(formEl, 'ajax:complete', completeCb)
     remoteForm = new RemoteForm({el: formEl})
     document.body.appendChild(formEl)
   })
   describe('basic', function(){
     describe('success', function(){
+      beforeEach(function(){
+        sinon.stub(request.Request.prototype, 'end', function(callback){
+          callback(null, {})
+        })
+      })
+      afterEach(function(){
+        request.Request.prototype.end.restore()
+      })
       beforeEach(function(done){
-        formEl.setAttribute('action', proxy_url + '/success')
         bean.one(formEl, 'ajax:complete', function(){done()})
         bean.fire(formEl, 'submit')
       })
 
       it('fires one ajax:beforeSend event', function(){
-        assert.strictEqual(beforeSends, 1)
+        assert.strictEqual(beforeSendCount, 1)
       })
       it('fires one ajax:success event', function(){
-        assert.strictEqual(successes, 1)
+        assert.strictEqual(successCount, 1)
       })
       it('fires one ajax:complete event', function(){
-        assert.strictEqual(completes, 1)
+        assert.strictEqual(completeCount, 1)
       })
       it('fires zero ajax:error event', function(){
-        assert.strictEqual(errors, 0)
+        assert.strictEqual(errorCount, 0)
       })
     })
 
-    describe('error', function(){
+    describe('error (unreachable server)', function(){
+      beforeEach(function(){
+        sinon.stub(request.Request.prototype, 'end', function(callback){
+          this.xhr = {}
+          callback(new Error('Fake error'))
+        })
+      })
+      afterEach(function(){
+        request.Request.prototype.end.restore()
+      })
       beforeEach(function(done){
-        formEl.setAttribute('action', proxy_url + '/error')
         bean.one(formEl, 'ajax:complete', function(){done()})
-        remoteForm._handleResponse(new Error('Fake error'))
+        bean.fire(formEl, 'submit')
       })
       it('fires zero ajax:success event', function(){
-        assert.strictEqual(successes, 0)
+        assert.strictEqual(successCount, 0)
       })
       it('fires one ajax:complete event', function(){
-        assert.strictEqual(completes, 1)
+        assert.strictEqual(completeCount, 1)
       })
       it('fires one ajax:error event', function(){
-        assert.strictEqual(errors, 1)
+        assert.strictEqual(errorCount, 1)
+      })
+    })
+
+    describe('error (response status)', function(){
+      beforeEach(function(){
+        sinon.stub(request.Request.prototype, 'end', function(callback){
+          this.xhr = {}
+          callback(null, {error: {status: 401}})
+        })
+      })
+      afterEach(function(){
+        request.Request.prototype.end.restore()
+      })
+      beforeEach(function(done){
+        bean.one(formEl, 'ajax:complete', function(){done()})
+        bean.fire(formEl, 'submit')
+      })
+      it('fires zero ajax:success event', function(){
+        assert.strictEqual(successCount, 0)
+      })
+      it('fires one ajax:complete event', function(){
+        assert.strictEqual(completeCount, 1)
+      })
+      it('fires one ajax:error event', function(){
+        assert.strictEqual(errorCount, 1)
       })
     })
   })
   afterEach(function(){
-    bean.off(formEl, 'ajax:beforeSend', addBeforeSend)
-    bean.off(formEl, 'ajax:success', addSuccess)
-    bean.off(formEl, 'ajax:error', addError)
-    bean.off(formEl, 'ajax:complete', addComplete)
+    bean.off(formEl, 'ajax:beforeSend', beforeSendCb)
+    bean.off(formEl, 'ajax:success', successCb)
+    bean.off(formEl, 'ajax:error', errorCb)
+    bean.off(formEl, 'ajax:complete', completeCb)
   })
 })
