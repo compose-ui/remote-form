@@ -35,10 +35,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/compose-ui/ajax-form.git"
+    "url": "https://github.com/compose-ui/remote-form.git"
   },
   "bugs": {
-    "url": "https://github.com/compose-ui/ajax-form/issues"
+    "url": "https://github.com/compose-ui/remote-form/issues"
   },
-  "homepage": "https://github.com/compose-ui/ajax-form"
+  "homepage": "https://github.com/compose-ui/remote-form"
 }
