@@ -6,28 +6,24 @@ var bean = require('bean')
 var request = require('superagent')
 var sinon = require('sinon')
 
-var successCount, errorCount, beforeSendCount, completeCount = 0
-var successArgs, errorArgs, beforeSendArgs, completeArgs = []
-
-function beforeSendCb(){beforeSendCount++; beforeSendArgs = arguments}
-function successCb(){successCount++; successArgs = arguments}
-function errorCb(){errorCount++; errorArgs = arguments}
-function completeCb(){completeCount++; completeArgs = arguments}
-
 describe('RemoteForm', function(){
-  var formEl, remoteForm;
   beforeEach(function(){
-    successCount = errorCount = beforeSendCount = completeCount = 0
-    successArgs, errorArgs, beforeSendArgs, completeArgs = []
-    formEl = makeHtml(function(){/*
+    this.formEl = makeHtml(function(){/*
       <form data-remote="true"></form>
     */})
-    bean.on(formEl, 'ajax:beforeSend', beforeSendCb)
-    bean.on(formEl, 'ajax:success', successCb)
-    bean.on(formEl, 'ajax:error', errorCb)
-    bean.on(formEl, 'ajax:complete', completeCb)
-    remoteForm = new RemoteForm({el: formEl})
-    document.body.appendChild(formEl)
+    this.remoteForm = new RemoteForm({el: this.formEl})
+    
+    this.beforeSendCb = sinon.spy()
+    this.successCb = sinon.spy()
+    this.errorCb = sinon.spy()
+    this.completeCb = sinon.spy()
+    
+    bean.on(this.formEl, 'ajax:beforeSend', this.beforeSendCb)
+    bean.on(this.formEl, 'ajax:success', this.successCb)
+    bean.on(this.formEl, 'ajax:error', this.errorCb)
+    bean.on(this.formEl, 'ajax:complete', this.completeCb)
+    
+    document.body.appendChild(this.formEl)
   })
   describe('basic', function(){
     describe('success', function(){
@@ -40,21 +36,21 @@ describe('RemoteForm', function(){
         request.Request.prototype.end.restore()
       })
       beforeEach(function(done){
-        bean.one(formEl, 'ajax:complete', function(){done()})
-        bean.fire(formEl, 'submit')
+        bean.one(this.formEl, 'ajax:complete', function(){done()})
+        bean.fire(this.formEl, 'submit')
       })
 
       it('fires one ajax:beforeSend event', function(){
-        assert.strictEqual(beforeSendCount, 1)
+        assert.strictEqual(this.beforeSendCb.callCount, 1)
       })
       it('fires one ajax:success event', function(){
-        assert.strictEqual(successCount, 1)
+        assert.strictEqual(this.successCb.callCount, 1)
       })
       it('fires one ajax:complete event', function(){
-        assert.strictEqual(completeCount, 1)
+        assert.strictEqual(this.completeCb.callCount, 1)
       })
       it('fires zero ajax:error event', function(){
-        assert.strictEqual(errorCount, 0)
+        assert.strictEqual(this.errorCb.callCount, 0)
       })
     })
 
@@ -69,17 +65,17 @@ describe('RemoteForm', function(){
         request.Request.prototype.end.restore()
       })
       beforeEach(function(done){
-        bean.one(formEl, 'ajax:complete', function(){done()})
-        bean.fire(formEl, 'submit')
+        bean.one(this.formEl, 'ajax:complete', function(){done()})
+        bean.fire(this.formEl, 'submit')
       })
       it('fires zero ajax:success event', function(){
-        assert.strictEqual(successCount, 0)
+        assert.strictEqual(this.successCb.callCount, 0)
       })
       it('fires one ajax:complete event', function(){
-        assert.strictEqual(completeCount, 1)
+        assert.strictEqual(this.completeCb.callCount, 1)
       })
       it('fires one ajax:error event', function(){
-        assert.strictEqual(errorCount, 1)
+        assert.strictEqual(this.errorCb.callCount, 1)
       })
     })
 
@@ -94,24 +90,51 @@ describe('RemoteForm', function(){
         request.Request.prototype.end.restore()
       })
       beforeEach(function(done){
-        bean.one(formEl, 'ajax:complete', function(){done()})
-        bean.fire(formEl, 'submit')
+        bean.one(this.formEl, 'ajax:complete', function(){done()})
+        bean.fire(this.formEl, 'submit')
       })
       it('fires zero ajax:success event', function(){
-        assert.strictEqual(successCount, 0)
+        assert.strictEqual(this.successCb.callCount, 0)
       })
       it('fires one ajax:complete event', function(){
-        assert.strictEqual(completeCount, 1)
+        assert.strictEqual(this.completeCb.callCount, 1)
       })
       it('fires one ajax:error event', function(){
-        assert.strictEqual(errorCount, 1)
+        assert.strictEqual(this.errorCb.callCount, 1)
+      })
+    })
+
+    describe('DELETE', function(){
+      beforeEach(function(){
+        sinon.spy(request, 'del')
+        sinon.stub(request.Request.prototype, 'end', function(callback){
+          callback(null, {})
+        })
+      })
+      afterEach(function(){
+        request.Request.prototype.end.restore()
+        request.del.restore()
+      })
+      beforeEach(function(done){
+        this.formEl.dataset.method = "delete"
+        bean.one(this.formEl, 'ajax:complete', function(){done()})
+        bean.fire(this.formEl, 'submit')
+      })
+      it('fires one ajax:beforeSend event', function(){
+        assert.strictEqual(this.beforeSendCb.callCount, 1)
+      })
+      it('fires one ajax:success event', function(){
+        assert.strictEqual(this.successCb.callCount, 1)
+      })
+      it('calls the del method on the request', function(){
+        assert(request.del.called)
       })
     })
   })
   afterEach(function(){
-    bean.off(formEl, 'ajax:beforeSend', beforeSendCb)
-    bean.off(formEl, 'ajax:success', successCb)
-    bean.off(formEl, 'ajax:error', errorCb)
-    bean.off(formEl, 'ajax:complete', completeCb)
+    bean.off(this.formEl, 'ajax:beforeSend', this.beforeSendCb)
+    bean.off(this.formEl, 'ajax:success', this.successCb)
+    bean.off(this.formEl, 'ajax:error', this.errorCb)
+    bean.off(this.formEl, 'ajax:complete', this.completeCb)
   })
 })

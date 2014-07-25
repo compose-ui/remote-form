@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+- Superagent uses `del` for DELETE requests since `delete` is a reserved word.
+
 ## 1.0.1
 
 - Fixed bean events not sending in the correct arguments

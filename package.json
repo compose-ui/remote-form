@@ -1,7 +1,7 @@
 {
   "name": "compose-remote-form",
   "version": "1.0.1",
-  "description": "",
+  "description": "Wrap your regular form with moar ajax.",
   "main": "index.js",
   "scripts": {
     "test": "mochify --reporter spec"

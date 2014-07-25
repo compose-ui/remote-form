@@ -18,13 +18,14 @@ module.exports = Wagon.extend({
 
   submit: function(event){
     event.preventDefault()
-    var method = this.el.dataset.method || this.el.getAttribute('method') || 'get'
+    var method = (this.el.dataset.method || this.el.getAttribute('method') || 'get').toLowerCase()
     var url = this.el.dataset.url || this.el.getAttribute('action')
     var data = serialize(this.el)
     var dataType = this.el.dataset.type || undefined // 'form' or 'json'
 
     var req;
-    this.currentRequest = req = request[method.toLowerCase()](url)
+    if (method === 'delete') method = 'del'
+    this.currentRequest = req = request[method](url)
 
     if (data)
       req.send(data)
