@@ -1,13 +1,14 @@
 {
   "name": "compose-remote-form",
-  "version": "1.0.2",
+  "version": "2.0.0",
   "description": "Wrap your regular form with moar ajax.",
   "main": "index.js",
   "scripts": {
     "test": "mochify --reporter spec"
   },
   "contributors": [
-    "Jerome Gravel-Niquet"
+    "Jerome Gravel-Niquet",
+    "Brandon Mathis"
   ],
   "license": "MIT",
   "devDependencies": {
