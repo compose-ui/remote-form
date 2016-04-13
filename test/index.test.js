@@ -11,7 +11,6 @@ describe('RemoteForm', function(){
     this.formEl = makeHtml(function(){/*
       <form data-remote="true"></form>
     */})
-    //this.remoteForm = new RemoteForm({el: this.formEl})
     
     this.beforeSendCb = sinon.spy()
     this.successCb = sinon.spy()
@@ -24,6 +23,7 @@ describe('RemoteForm', function(){
     event.on(this.formEl, 'ajax:complete', this.completeCb)
     
     document.body.appendChild(this.formEl)
+    event.fire(document, 'DOMContentLoaded')
   })
   describe('basic', function(){
     describe('success', function(){
@@ -55,18 +55,16 @@ describe('RemoteForm', function(){
     })
 
     describe('error (unreachable server)', function(){
-      beforeEach(function(){
+      beforeEach(function(done){
         sinon.stub(request.Request.prototype, 'end', function(callback){
           this.xhr = {}
           callback(new Error('Fake error'))
         })
+        event.one(this.formEl, 'ajax:complete', function(){done()})
+        event.fire(this.formEl, 'submit')
       })
       afterEach(function(){
         request.Request.prototype.end.restore()
-      })
-      beforeEach(function(done){
-        event.one(this.formEl, 'ajax:complete', function(){done()})
-        event.fire(this.formEl, 'submit')
       })
       it('fires zero ajax:success event', function(){
         assert.strictEqual(this.successCb.callCount, 0)

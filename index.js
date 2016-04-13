@@ -1,7 +1,7 @@
 var request = require('superagent')
 var serialize = require('form-serialize')
 var domify = require('domify')
-var event = require('compose-event')
+var Event = require('compose-event')
 var dialog = require('compose-dialog')
 
 var counter = 0
@@ -10,15 +10,15 @@ var DEFAULT_CONTINUE_BUTTON = 'Yes'
 var Form = {
   listen: function(){
 
-    event.on(document, {
+    Event.on(document, {
       submit: this.submit.bind(this),
       'ajax:success': this.success.bind(this),
       'ajax:error': this.error.bind(this),
       'ajax:beforeSend': this.beforeSend.bind(this)
     }, 'form[data-remote]', this.submit)
 
-    event.on(document, 'submit', 'form', this.disableWith)
-    event.on(document, 'click', 'a[data-method], a[data-confirm], button[data-method], button[data-confirm]', this.click.bind(this))
+    Event.on(document, 'submit', 'form', this.disableWith)
+    Event.on(document, 'click', 'a[data-method], a[data-confirm], button[data-method], button[data-confirm]', this.click.bind(this))
   },
 
   submit: function(event){
@@ -41,22 +41,22 @@ var Form = {
     else
       req.set('Accept', '*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript')
 
-    event.fire(form, 'ajax:beforeSend', [req])
+    Event.fire(form, 'ajax:beforeSend', [req])
 
-    req.end(function(error, response) { this.handleResponse(error, response, currentRequest) }.bind(this))
+    req.end(function(error, response) { this.handleResponse(form, error, response, currentRequest) }.bind(this))
 
     return req
   },
 
-  handleResponse: function(error, response, currentRequest){
+  handleResponse: function(form, error, response, currentRequest){
     if (error)
-      event.fire(form, 'ajax:error', [currentRequest.xhr, currentRequest.xhr.status, error])
+      Event.fire(form, 'ajax:error', [currentRequest.xhr, currentRequest.xhr.status, error])
     else if (response.error)
-      event.fire(form, 'ajax:error', [currentRequest.xhr, response.status, response.error])
+      Event.fire(form, 'ajax:error', [currentRequest.xhr, response.status, response.error])
     else
-      event.fire(form, 'ajax:success', [response.body, response.status, currentRequest.xhr])
+      Event.fire(form, 'ajax:success', [response.body, response.status, currentRequest.xhr])
     // This is fired every time.
-    event.fire(form, 'ajax:complete', [currentRequest.xhr, response ? response.status : 0])
+    Event.fire(form, 'ajax:complete', [currentRequest.xhr, response ? response.status : 0])
     delete currentRequest
   },
 
@@ -64,8 +64,8 @@ var Form = {
   success: function(body, status, xhr){},
   error: function(xhr, status, error){},
 
-  disableWith: function(event) {
-    var buttons = event.currentTarget.querySelectorAll('[data-disable-with]')
+  disableWith: function(Event) {
+    var buttons = Event.currentTarget.querySelectorAll('[data-disable-with]')
     Array.prototype.forEach.call(buttons, function(button){
       button.disabled = true
       button.classList.add('disabled')
@@ -134,7 +134,7 @@ var Form = {
 
 }
 
-event.ready(function(){
+Event.ready(function(){
   // Since this is a replacement for Rails UJS, we want to be sure it's not being used.
   if (!window.$ || !$.rails) Form.listen()
 })
