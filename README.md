@@ -10,20 +10,26 @@ npm install compose-remote-form
 
 ## Usage
 
-### Just make it AJAX-y already!
+### Setup
 
 ```javascript
 var RemoteForm = require('compose-remote-form')
-
-new RemoteForm({el: document.querySelector('form')})
 ```
 
-### Extending remote forms
+### Add your own ajax event callbacks
 
 More details about each fired "event" below.
 
 ```javascript
-RemoteForm.extend({
+
+// Register single callbacks:
+RemoteForm.on('#formid', 'error', function(body, status, xhr) {
+  console.log('success!', body)
+})
+
+// Register multiple callbacks:
+var formEl = document.querySelector('#formid')
+RemoteForm.on(formEl, {
   beforeSend: function(req){
     console.log('submitting the form...')
   },
@@ -32,7 +38,10 @@ RemoteForm.extend({
   },
   error: function(xhr, status, error){
     console.log('error :(', error)
-  }
+  },
+  complete: function(xhr, status){
+    console.log('complete:', status)
+  },
 })
 ```
 
@@ -54,4 +63,10 @@ Upon success, this is fired with the returned `body`, response `status` and the 
 
 When an error occurs, this event is fired with the original ajax request `xhr` object and the `error` that the ajax library suffered.
 
-It'll be fire in the event of a request not getting through (due to CORS, server down, etc.), a server error (5xx) or a client error (4xx).
+It'll fire in the event of a request not getting through (due to CORS, server down, etc.), a server error (5xx) or a client error (4xx).
+
+### `ajax:complete(xhr, status)`
+
+The `complete` event is fired at the end of the ajax submission lifecycle,
+regardless of success or failure. You might use this event to perform some
+cleanup action no matter the end result of a form submission.

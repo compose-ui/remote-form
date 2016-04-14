@@ -7,14 +7,17 @@ var dialog = require('compose-dialog')
 var counter = 0
 var DEFAULT_CONTINUE_BUTTON = 'Yes'
 
+var callbacks = {
+  error: [],
+  success: [],
+  beforeSend: [],
+  complete: []
+}
+
 var Form = {
   listen: function(){
-
     Event.on(document, {
-      submit: this.submit.bind(this),
-      'ajax:success': this.success.bind(this),
-      'ajax:error': this.error.bind(this),
-      'ajax:beforeSend': this.beforeSend.bind(this)
+      submit: this.submit.bind(this)
     }, 'form[data-remote]', this.submit)
 
     Event.on(document, 'submit', 'form', this.disableWith)
@@ -41,7 +44,7 @@ var Form = {
     else
       req.set('Accept', '*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript')
 
-    Event.fire(form, 'ajax:beforeSend', [req])
+    this.fireCallbacks(form, 'beforeSend', [req])
 
     req.end(function(error, response) { this.handleResponse(form, error, response, currentRequest) }.bind(this))
 
@@ -49,32 +52,80 @@ var Form = {
   },
 
   handleResponse: function(form, error, response, currentRequest){
-    if (error)
-      Event.fire(form, 'ajax:error', [currentRequest.xhr, currentRequest.xhr.status, error])
-    else if (response.error)
-      Event.fire(form, 'ajax:error', [currentRequest.xhr, response.status, response.error])
-    else
-      Event.fire(form, 'ajax:success', [response.body, response.status, currentRequest.xhr])
-    // This is fired every time.
-    Event.fire(form, 'ajax:complete', [currentRequest.xhr, response ? response.status : 0])
+    if (error) {
+      // If a form submission fails, don't leave the buttons disabled
+      this.enableButtons(form)
+
+      var args = [currentRequest.xhr, currentRequest.xhr.status, error]
+      if (response.error)
+        args = [currentRequest.xhr, response.status, response.error]
+
+      this.fireCallbacks(form, 'error', args)
+    } else {
+      this.fireCallbacks(form, 'success', [response.body, response.status, currentRequest.xhr])
+    }
+
+    this.fireCallbacks(form, 'complete', [currentRequest.xhr, response ? response.status : 0])
     delete currentRequest
   },
 
-  beforeSend: function(req){},
-  success: function(body, status, xhr){},
-  error: function(xhr, status, error){},
+  // Register callbacks to be executed at each phase of the form event.
+  on: function () {
+    var args = arguments.slice(0)
+    var element = args.shift()
+    var events = args.shift()
 
-  disableWith: function(Event) {
-    var buttons = Event.currentTarget.querySelectorAll('[data-disable-with]')
+    if (typeof events == 'string') {
+      var objEvents = {}
+      objEvents[events] = args.shift()
+      events = objEvents
+    }
+
+    for (event in events) {
+      if (events.hasOwnProperty(event)) {
+        var callback = events[event]
+
+        // Wrap callback in a function that only fires the callback if the
+        // element matches the listened to element
+        callbacks[type].push(function(){
+          var args = arguments.slice(0)
+          var element = args.shift()
+          if (element == form || (typeof element == 'string' && document.querySelector(element) == form))
+            callback.apply(null, args)
+        })
+      }
+    }
+  },
+
+  fireCallbacks: function(type, element, args) {
+    Event.fire(element, 'ajax:'+type, args)
+    callbacks[type].forEach(function(cb) { 
+      cb.apply(null, [element].concat(args))
+    })
+  }
+
+  disableWith: function(event) {
+    var buttons = event.currentTarget.querySelectorAll('[data-disable-with]')
     Array.prototype.forEach.call(buttons, function(button){
       button.disabled = true
       button.classList.add('disabled')
+      button.dataset.enabledButtonLabel = button.innerHTML
 
       var buttonText = button.dataset.disableWith
       if (!buttonText || buttonText == '') { buttonText = button.innerHTML }
 
       // Because dang it all, an elipsis is not three periods.
       button.innerHTML = buttonText.replace(/\.{3}/, '…')
+    })
+  },
+
+  enableButtons: function(form) {
+    var buttons = form.querySelectorAll('[data-disable-with]')
+    Array.prototype.forEach.call(buttons, function(button){
+      button.disabled = false
+      button.classList.remove('disabled')
+
+      button.innerHTML = button.dataset.enabledButtonLabel
     })
   },
 
