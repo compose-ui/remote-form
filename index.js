@@ -18,6 +18,9 @@ var Form = {
   listen: function(){
     Event.on(document, {
       submit: this.submit.bind(this)
+      //'ajax:success': this.success.bind(this),
+      //'ajax:error': this.error.bind(this),
+      //'ajax:beforeSend': this.beforeSend.bind(this)
     }, 'form[data-remote]', this.submit)
 
     Event.on(document, 'submit', 'form', this.disableWith)
@@ -51,23 +54,27 @@ var Form = {
     return req
   },
 
+  //beforeSend: function(req){},
+  //success: function(body, status, xhr){},
+  //error: function(xhr, status, error){},
+
   handleResponse: function(form, error, response, currentRequest){
-    if (error) {
-      // If a form submission fails, don't leave the buttons disabled
-      this.enableButtons(form)
-
-      var args = [currentRequest.xhr, currentRequest.xhr.status, error]
-      if (response.error)
-        args = [currentRequest.xhr, response.status, response.error]
-
-      this.fireCallbacks(form, 'error', args)
-    } else {
+    if (error)
+      this.fireCallbacks(form, 'error', [currentRequest.xhr, currentRequest.xhr.status, error])
+    else if (response.error)
+      this.fireCallbacks(form, 'error', [currentRequest.xhr, response.status, response.error])
+    else
       this.fireCallbacks(form, 'success', [response.body, response.status, currentRequest.xhr])
-    }
 
+    this.enableButtons(form)
     this.fireCallbacks(form, 'complete', [currentRequest.xhr, response ? response.status : 0])
     delete currentRequest
   },
+
+  fireCallbacks: function(element, type, args) {
+    Event.fire(element, 'ajax:'+type, args)
+  },
+
 
   // Register callbacks to be executed at each phase of the form event.
   on: function () {
@@ -96,13 +103,6 @@ var Form = {
       }
     }
   },
-
-  fireCallbacks: function(type, element, args) {
-    Event.fire(element, 'ajax:'+type, args)
-    callbacks[type].forEach(function(cb) { 
-      cb.apply(null, [element].concat(args))
-    })
-  }
 
   disableWith: function(event) {
     var buttons = event.currentTarget.querySelectorAll('[data-disable-with]')
