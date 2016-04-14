@@ -7,23 +7,30 @@ var request = require('superagent')
 var sinon = require('sinon')
 
 describe('RemoteForm', function(){
-  beforeEach(function(){
+  before(function() {
+    event.fire(document, 'DOMContentLoaded')
     this.formEl = makeHtml(function(){/*
       <form data-remote="true"></form>
     */})
     
+    document.body.appendChild(this.formEl)
+  })
+
+  beforeEach(function(){
     this.beforeSendCb = sinon.spy()
     this.successCb = sinon.spy()
     this.errorCb = sinon.spy()
     this.completeCb = sinon.spy()
     
-    event.on(this.formEl, 'ajax:beforeSend', this.beforeSendCb)
-    event.on(this.formEl, 'ajax:success', this.successCb)
-    event.on(this.formEl, 'ajax:error', this.errorCb)
-    event.on(this.formEl, 'ajax:complete', this.completeCb)
-    
-    document.body.appendChild(this.formEl)
-    event.fire(document, 'DOMContentLoaded')
+    // Typically reset by page loads, this needs to be done manually in testing
+    RemoteForm.resetCallbacks()
+
+    RemoteForm.on(this.formEl, {
+      beforeSend: this.beforeSendCb,
+      success: this.successCb,
+      error: this.errorCb,
+      complete: this.completeCb,
+    })
   })
   describe('basic', function(){
     describe('success', function(){

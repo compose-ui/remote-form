@@ -3,26 +3,17 @@ var serialize = require('form-serialize')
 var domify = require('domify')
 var Event = require('compose-event')
 var dialog = require('compose-dialog')
+var slice = Array.prototype.slice
 
 var counter = 0
 var DEFAULT_CONTINUE_BUTTON = 'Yes'
-
-var callbacks = {
-  error: [],
-  success: [],
-  beforeSend: [],
-  complete: []
-}
+var callbacks = {}
 
 var Form = {
   listen: function(){
-    Event.on(document, {
-      submit: this.submit.bind(this)
-      //'ajax:success': this.success.bind(this),
-      //'ajax:error': this.error.bind(this),
-      //'ajax:beforeSend': this.beforeSend.bind(this)
-    }, 'form[data-remote]', this.submit)
+    this.resetCallbacks()
 
+    Event.on(document, 'submit', 'form[data-remote]',  this.submit.bind(this))
     Event.on(document, 'submit', 'form', this.disableWith)
     Event.on(document, 'click', 'a[data-method], a[data-confirm], button[data-method], button[data-confirm]', this.click.bind(this))
   },
@@ -54,10 +45,6 @@ var Form = {
     return req
   },
 
-  //beforeSend: function(req){},
-  //success: function(body, status, xhr){},
-  //error: function(xhr, status, error){},
-
   handleResponse: function(form, error, response, currentRequest){
     if (error)
       this.fireCallbacks(form, 'error', [currentRequest.xhr, currentRequest.xhr.status, error])
@@ -71,15 +58,19 @@ var Form = {
     delete currentRequest
   },
 
-  fireCallbacks: function(element, type, args) {
-    Event.fire(element, 'ajax:'+type, args)
+  fireCallbacks: function(form, type, args) {
+    callbacks[type].forEach(function(cb) { 
+      if (cb[0] == form || (typeof cb[0] == 'string' && document.querySelector(cb[0]) == form)) {
+        cb[1].apply(null, args)
+      }
+    })
+    Event.fire(form, 'ajax:'+type, args)
   },
-
 
   // Register callbacks to be executed at each phase of the form event.
   on: function () {
-    var args = arguments.slice(0)
-    var element = args.shift()
+    var args = slice.call(arguments)
+    var form = args.shift()
     var events = args.shift()
 
     if (typeof events == 'string') {
@@ -88,19 +79,20 @@ var Form = {
       events = objEvents
     }
 
-    for (event in events) {
-      if (events.hasOwnProperty(event)) {
-        var callback = events[event]
-
-        // Wrap callback in a function that only fires the callback if the
-        // element matches the listened to element
-        callbacks[type].push(function(){
-          var args = arguments.slice(0)
-          var element = args.shift()
-          if (element == form || (typeof element == 'string' && document.querySelector(element) == form))
-            callback.apply(null, args)
-        })
+    for (type in events) {
+      var cb = events[type]
+      if (events.hasOwnProperty(type) && callbacks.hasOwnProperty(type)) {
+        callbacks[type].push([form, cb])
       }
+    }
+  },
+
+  resetCallbacks: function() {
+    callbacks = {
+      beforeSend: [],
+      success: [],
+      error: [],
+      complete: []
     }
   },
 
