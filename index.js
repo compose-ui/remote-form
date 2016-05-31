@@ -2,7 +2,7 @@ var request = require('superagent')
 var serialize = require('form-serialize')
 var domify = require('domify')
 var Event = require('compose-event')
-var dialog = require('compose-dialog')
+var Dialog = require('compose-dialog')
 var slice = Array.prototype.slice
 
 var counter = 0
@@ -157,7 +157,7 @@ var Form = {
       opts.submit = el.dataset.submit
     }
 
-    dialog.show(opts)
+    Dialog.show(opts)
   },
 
   buildForm: function(el) {
