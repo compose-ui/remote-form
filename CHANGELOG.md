@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.1
+- Removed and upgraded lots of old dependencies.
+
+## 2.0.0
+- Removed Wagon dependency, requiring a full rewrite.
+
 ## 1.0.2
 
 - Superagent uses `del` for DELETE requests since `delete` is a reserved word.

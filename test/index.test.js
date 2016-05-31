@@ -1,17 +1,14 @@
-var helpers = require('./helpers')
-var assert = helpers.assert
-var makeHtml = helpers.makeHtml
+var assert = require('chai').assert
 var RemoteForm = require('../index')
 var event = require('compose-event')
 var request = require('superagent')
 var sinon = require('sinon')
+var domify = require('domify')
 
 describe('RemoteForm', function(){
   before(function() {
     event.fire(document, 'DOMContentLoaded')
-    this.formEl = makeHtml(function(){/*
-      <form data-remote="true"></form>
-    */})
+    this.formEl = domify('<form data-remote="true"></form>')
     
     document.body.appendChild(this.formEl)
   })
