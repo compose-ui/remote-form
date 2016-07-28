@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.1.0
+- Now form event callbacks pass the form element as the first argument.
+- You can set callback on the document to trigger on events for any form.
+
 ## 2.0.1
 - Removed and upgraded lots of old dependencies.
 

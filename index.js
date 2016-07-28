@@ -60,11 +60,16 @@ var Form = {
 
   fireCallbacks: function(form, type, args) {
     callbacks[type].forEach(function(cb) { 
-      if (cb[0] == form || (typeof cb[0] == 'string' && document.querySelector(cb[0]) == form)) {
+      if (self.matchCallbackForm(form, cb[0])) {
+        args.unshift(form)
         cb[1].apply(null, args)
       }
     })
     Event.fire(form, 'ajax:'+type, args)
+  },
+
+  matchCallbackForm: function(form, cb) {
+    return (cb == form || (typeof cb == 'string' && document.querySelector(cb) == form) || cb == document)
   },
 
   // Register callbacks to be executed at each phase of the form event.
@@ -182,5 +187,5 @@ Event.ready(function(){
   if (!window.$ || !$.rails) Form.listen()
 })
 
-module.exports = Form
+module.exports = self = Form
 
