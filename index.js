@@ -36,7 +36,7 @@ var Form = {
     else
       req.set('Accept', '*/*;q=0.5, text/javascript, application/javascript, application/ecmascript, application/x-ecmascript')
 
-    self.fireCallbacks(form, 'beforeSend', [req])
+    self.fireCallbacks(form, 'beforeSend', req)
 
     req.end(function(error, response) { self.handleResponse(form, error, response, currentRequest) })
 
@@ -45,48 +45,25 @@ var Form = {
 
   handleResponse: function(form, error, response, currentRequest){
     var xhr = currentRequest.xhr
-    var status = self.processStatus(xhr, response)
 
     if (error || response.error) {
-      error = self.processErrorResponse(xhr, error || response.error)
-      self.fireCallbacks(form, 'error', [xhr, status, error])
+      self.fireCallbacks(form, 'error', xhr)
     } else {
-      self.fireCallbacks(form, 'success', [response.body, status, xhr])
+      self.fireCallbacks(form, 'success', xhr)
     }
 
     self.enableButtons(form)
-    self.fireCallbacks(form, 'complete', [xhr, status])
+    self.fireCallbacks(form, 'complete', xhr)
     delete currentRequest
   },
 
-  processStatus: function(xhr, response) {
-    if (response && response.status)
-      return response.status
-    else if (xhr && xhr.status) 
-      return xhr.status
-    else
-      return 0
-  },
-
-  processErrorResponse: function(xhr, message) {
-    if (xhr && xhr.response && xhr.repsonse.errors) {
-      return xhr.response.errors
-    }
-    try {
-      message = JSON.parse(xhr.response.text).messages
-    } finally {
-      return message
-    }
-  },
-
-  fireCallbacks: function(form, type, args) {
+  fireCallbacks: function(form, type, arg) {
     callbacks[type].forEach(function(cb) { 
       if (self.matchCallbackForm(form, cb[0])) {
-        args.unshift(form)
-        cb[1].apply(null, args)
+        cb[1].apply(null, [form, type, arg])
       }
     })
-    Event.fire(form, 'ajax:'+type, args)
+    Event.fire(form, 'ajax:'+type, [arg])
   },
 
   matchCallbackForm: function(form, cb) {

@@ -33,14 +33,15 @@ RemoteForm.on(formEl, {
   beforeSend: function(form, req){
     console.log('submitting the form...')
   },
-  success: function(form, body, status, xhr){
-    console.log('success!', body)
+  success: function(form, eventType, xhr){
+    console.log('success!', xhr.responseText)
   },
-  error: function(form, xhr, status, error){
-    console.log('error :(', error)
+  error: function(form, eventType, xhr){
+    console.log('error :(', xhr.errors)
   },
-  complete: function(form, xhr, status){
-    console.log('complete:', status)
+  complete: function(form, eventType xhr){
+    // All form events have been triggered
+    // Use this to do any generic cleanup
   },
 })
 

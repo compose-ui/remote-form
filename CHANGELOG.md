@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.0
+- Standardized form event arguments, now returning `form, eventType, xhr`.
+
 ## 2.2.1
 - Removed dependencies from package.json :facepalm:
 
