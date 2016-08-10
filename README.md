@@ -78,3 +78,29 @@ It'll fire in the event of a request not getting through (due to CORS, server do
 The `complete` event is fired at the end of the ajax submission lifecycle,
 regardless of success or failure. You might use this event to perform some
 cleanup action no matter the end result of a form submission.
+
+
+## Confirm dialog
+
+If you add a `data-confirm='Are you sure?'` to your form's submission button to trigger a confirm dialog. This will use the browser's default confirm dialog but you can customize it like this if you wish.
+
+```javascript
+var RemoteForm = require('compose-remote-form')
+
+RemoteForm.confirm = function(options) {
+  // your code.
+}
+```
+
+The options passed to your confirm function will look like this:
+
+```javascript
+options = {
+  title: 'Are you sure?', // Based on the button's data-confirm attribute.
+  submit: '#form-id',     // form's id, allowing you to trigger a javascript submit.
+  message: '',            // OPTIONAL: button's data-message attribute, used to allow title/message style dialogs.
+  destructive: true,      // OPTIONAL: Matches data-destructive attribute (used to set styling on warning style confirm dialogs
+  follow: 'http://...',   // OPTIONAL: A data-follow attribute can be set to take a user to a url.
+}
+```
+
