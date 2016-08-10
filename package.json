@@ -1,6 +1,6 @@
 {
   "name": "compose-remote-form",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Wrap your regular form with moar ajax.",
   "main": "index.js",
   "scripts": {

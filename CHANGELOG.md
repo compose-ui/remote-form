@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.2
+- Fixed reference to self
+
 ## 3.0.1
 - Fixed reference to parentForm when self.parentForm was needed.
 

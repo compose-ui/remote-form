@@ -205,5 +205,7 @@ Event.ready(function(){
   if (!window.$ || !$.rails) Form.listen()
 })
 
-module.exports = self = Form
+var self = Form
+
+module.exports = Form
 
