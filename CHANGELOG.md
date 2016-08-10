@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.2.1
+- Removed dependencies from package.json :facepalm:
+
 ## 2.2.0
 - Added support for responses formatted in the [JSON api errors standard](http://jsonapi.org/examples/#error-objects).
 - Factored out domify dependency in favor of `insertAdjacentHTML`.
