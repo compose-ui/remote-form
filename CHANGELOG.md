@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.1
+- Fixed reference to parentForm when self.parentForm was needed.
+
 ## 3.0.0
 - Standardized form event arguments, now returning `form, eventType, xhr`.
 

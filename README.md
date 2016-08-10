@@ -31,6 +31,7 @@ RemoteForm.on('#formid', 'error', function(form, body, status, xhr) {
 var formEl = document.querySelector('#formid')
 RemoteForm.on(formEl, {
   beforeSend: function(form, req){
+    // req is the current reuqest object
     console.log('submitting the form...')
   },
   success: function(form, eventType, xhr){

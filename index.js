@@ -135,7 +135,7 @@ var Form = {
   click: function(event) {
     event.preventDefault()
     var el = event.currentTarget
-    var form = parentForm(el)
+    var form = self.parentForm(el)
 
     // If the form submission trigger is not inside of a form, create one
     if (!form) {
