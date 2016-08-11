@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.4
+- Now `data-confirm`, and `data-method` clicks will create a remote form if elements have `data-remote=true`
+
 ## 3.0.3
 - Fixed submit handler now properly submits remote forms after a confirm dialog.
 

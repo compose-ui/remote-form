@@ -147,6 +147,9 @@ var Form = {
     if (!form) {
       document.body.insertAdjacentHTML('beforeend', self.buildForm(el))
       form = document.body.lastChild
+      if (el.dataset.remote) {
+        form.dataset.remote = el.dataset.remote
+      }
     }
 
     if (el.dataset.confirm) {
@@ -196,7 +199,7 @@ var Form = {
     var csrfToken = document.querySelector('meta[name=csrf-token]')
     var csrfParam = document.querySelector('meta[name=csrf-param]')
 
-    var form = '<form id="link-'+ (++counter) +'" class="hidden" action="'+el.dataset.url || el.dataset.action || el.href+'" method="post">'
+    var form = '<form id="link-'+ (++counter) +'" class="hidden" action="'+(el.dataset.url || el.dataset.action || el.getAttribute('href'))+'" method="post">'
     form += '<input name="_method" value="' + method + '" type="hidden">'
 
     if (csrfToken && csrfParam)

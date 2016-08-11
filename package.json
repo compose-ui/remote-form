@@ -1,6 +1,6 @@
 {
   "name": "compose-remote-form",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "description": "A utility library for simplifying ajax form submission and managing response handlers.",
   "main": "index.js",
   "scripts": {
