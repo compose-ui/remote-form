@@ -1,5 +1,8 @@
 # Changelog
 
+## 3.0.3
+- Fixed submit handler now properly submits remote forms after a confirm dialog.
+
 ## 3.0.2
 - Fixed reference to self
 

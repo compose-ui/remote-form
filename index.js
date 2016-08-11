@@ -17,8 +17,14 @@ var Form = {
   },
 
   submit: function(event){
-    var form = event.currentTarget
     event.preventDefault()
+    self.submitForm(event.currentTarget)
+  },
+
+  submitForm: function(form) {
+    if (!form.dataset.remote) {
+      return form.submit()
+    }
 
     var method = (form.dataset.method || form.getAttribute('method') || 'get').toLowerCase()
     var url = form.dataset.url || form.getAttribute('action')
@@ -146,12 +152,15 @@ var Form = {
     if (el.dataset.confirm) {
       self.triggerConfirm(el, form)
     } else {
-      form.submit()
+      self.submitForm(form)
     }
 
   },
 
   triggerConfirm: function(el, form) {
+    if (form.getAttribute('id') == null) {
+      form.setAttribute('id', 'temp-id-' + Math.round(Math.random()*10000))
+    }
     var opts = {
       title: el.dataset.confirm || null,
       message: el.dataset.message || null,
@@ -167,7 +176,7 @@ var Form = {
     } else {
       opts.follow = el.getAttribute('href')
       opts.destructive = !!el.dataset.destructive
-      opts.submit = el.dataset.submit
+      opts.submit = el.dataset.submit || '#' + form.getAttribute('id')
     }
 
     self.confirm(opts)
@@ -178,7 +187,7 @@ var Form = {
       if (options.follow)
         window.location = options.follow
       else if (options.submit)
-        document.querySelector(options.submit).submit()
+        self.submitForm(document.querySelector(options.submit))
     }
   },
 
@@ -208,4 +217,3 @@ Event.ready(function(){
 var self = Form
 
 module.exports = Form
-
